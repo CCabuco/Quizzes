@@ -1,0 +1,197 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#quiz{padding:1rem 0;max-width:660px}
+.prog{font-size:13px;color:var(--text-secondary);margin-bottom:0.5rem}
+.score-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.5rem}
+.score-fill{height:4px;background:var(--border-accent);border-radius:2px;transition:width 0.4s}
+.q-card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+.diff{display:inline-block;font-size:11px;padding:2px 8px;border-radius:var(--radius);margin-bottom:0.75rem;font-weight:500}
+.diff-easy{background:var(--bg-success);color:var(--text-success)}
+.diff-medium{background:var(--bg-warning);color:var(--text-warning)}
+.diff-hard{background:var(--bg-danger);color:var(--text-danger)}
+.q-text{font-size:15px;color:var(--text-primary);line-height:1.6;margin-bottom:1rem}
+.hint-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.hint-label{font-size:12px;color:var(--text-secondary)}
+.hint-letters{display:flex;gap:4px;flex-wrap:wrap}
+.hint-box{display:inline-flex;align-items:center;justify-content:center;width:26px;height:30px;border:0.5px solid var(--border-strong);border-radius:var(--radius);font-size:13px;font-weight:500;color:var(--text-accent);background:var(--bg-accent)}
+.hint-box.blank{color:var(--text-muted);background:var(--surface-1)}
+.hint-box.space{border:none;background:transparent;width:10px}
+.input-row{display:flex;gap:8px;align-items:center;margin-bottom:0.75rem}
+.input-row input{flex:1;font-size:14px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:0.5rem}
+.btn{background:transparent;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0.5rem 1.25rem;font-size:14px;color:var(--text-primary);cursor:pointer}
+.btn:hover{background:var(--surface-1)}
+.btn:disabled{opacity:0.4;cursor:default}
+.btn-hint{font-size:13px;padding:0.4rem 0.9rem;color:var(--text-secondary)}
+.feedback{margin-top:0.75rem;padding:0.75rem 1rem;border-radius:var(--radius);font-size:13px;line-height:1.6;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:var(--bg-success);color:var(--text-success);border:0.5px solid var(--border-success)}
+.feedback.bad{background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger)}
+.final{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:2rem;text-align:center}
+.final h2{font-size:22px;font-weight:500;color:var(--text-primary);margin-bottom:0.5rem}
+.final .big{font-size:42px;font-weight:500;color:var(--text-accent);margin:1rem 0}
+.final p{font-size:14px;color:var(--text-secondary);margin-bottom:1.5rem}
+.review-item{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.75rem 1rem;text-align:left;margin:0.5rem 0}
+.review-item .rq{font-size:13px;color:var(--text-secondary);margin-bottom:4px}
+.review-item .ra{font-size:13px;color:var(--text-success);font-weight:500}
+.review-title{font-size:14px;font-weight:500;color:var(--text-primary);margin:1rem 0 0.5rem;text-align:left}
+</style>
+<h2 class="sr-only">Game design fill-in-the-blank quiz with first letter hints</h2>
+<div id="quiz"></div>
+<script>
+const Qs=[
+{q:"An option so good it's never worth doing anything else is called a _____ strategy.",ans:"dominant",diff:"easy",exp:"A dominant strategy is one so good it makes all other options worthless."},
+{q:"An option that is never worth using under any circumstances is called a _____ strategy.",ans:"dominated",diff:"easy",exp:"A dominated strategy is never worth using — the opposite of a dominant strategy."},
+{q:"The player's sense of actually being in the game's world is called _____.",ans:"immersion",diff:"easy",exp:"Immersion is achieved through ambience, interface, and storytelling."},
+{q:"Everything that contributes to the innate look and feel of a game — sound, vision, and touch — is called _____.",ans:"ambience",diff:"easy",exp:"Ambience broadly covers sound, vision, and touch as the contributing factors to a game's look and feel."},
+{q:"The literary device that gives an advance hint of what is to come later in a story is called _____.",ans:"foreshadowing",diff:"easy",exp:"Foreshadowing often appears at the beginning of a story or chapter to prepare the reader for upcoming events."},
+{q:"The type of game balance that makes a multiplayer game fair so each player gets no advantage other than skill is called _____ balance.",ans:"player/player",diff:"easy",exp:"Player/player balance ensures the game is fair — luck may exist but must apply evenly to all players."},
+{q:"The type of game balance that ensures the player's learning curve is matched by rewards is called _____ balance.",ans:"player/gameplay",diff:"easy",exp:"Player/gameplay balance is about making sure the player is rewarded enough to stay engaged as they learn."},
+{q:"The type of game balance that ensures features within the game are balanced against each other is called _____ balance.",ans:"gameplay/gameplay",diff:"easy",exp:"Gameplay/gameplay balance means powerful features must be offset by compensating factors."},
+{q:"According to the source, _____ is what computers do best and is called the heart and soul of entertainment software.",ans:"interactivity",diff:"easy",exp:"Interactivity is described as more important than gameplay and as the heart and soul of entertainment software."},
+{q:"Sid Meier said a game is a series of interesting _____.",ans:"choices",diff:"easy",exp:"The source cites this definition when explaining what makes gameplay worthwhile and non-trivial."},
+{q:"The hidden costs — time, effort, attention, and resources — needed to reach a game choice are called _____ costs.",ans:"shadow",diff:"medium",exp:"Shadow costs represent everything you had to go through before reaching the current choice, beyond just the immediate price."},
+{q:"Types of expenditure that indirectly work toward your goal in a game are called _____ investments.",ans:"supporting",diff:"medium",exp:"Supporting investments operate at one or two removes from the goal, unlike direct purchases like hiring a mercenary."},
+{q:"The interactions between different elements of a player's strategic arsenal are called _____.",ans:"synergies",diff:"medium",exp:"Synergies take four forms and ideally all four should be in play at once to make decisions of timing more critical."},
+{q:"Advantages or disadvantages in a game that can be destroyed, stolen, or that have a limited time or number of uses are called _____.",ans:"impermanence",diff:"medium",exp:"Impermanence gives the designer a way to confront the player with difficult choices by making advantages temporary."},
+{q:"An option that is only useful in very narrow circumstances is called a near-_____ option.",ans:"dominated",diff:"medium",exp:"A near-dominated option is only useful against very specific conditions — like a stun gun only effective against one enemy type."},
+{q:"A design principle where each player has functionally the same choices available is called _____.",ans:"symmetry",diff:"medium",exp:"Symmetry in design ensures fairness by giving all players functionally the same options, even if they look different."},
+{q:"Adding a personal reason so the player or audience cares about the story's events is a technique called _____.",ans:"personalization",diff:"medium",exp:"Personalization makes abstract goals feel meaningful. The source contrasts saving the world abstractly with finding a lost niece."},
+{q:"A sudden event that pivots the story in a new and surprising direction is called a _____ point.",ans:"plot",diff:"medium",exp:"Plot points confound expectations and change the direction of the story. Gandalf's death in Lord of the Rings is given as an example."},
+{q:"The back-of-mind feeling a player has that 'it isn't true,' which must be overcome for good storytelling, is called _____.",ans:"resistance",diff:"medium",exp:"Resistance is the skepticism the audience feels. The source uses Bruce Willis snarling 'I'm retired' as an example of resistance to overcome."},
+{q:"The Unity method that finds and returns the component of a specified type attached to the same GameObject is called _____.",ans:"GetComponent",diff:"medium",exp:"GetComponent<Rigidbody>() finds the Rigidbody on the same GameObject and stores it in rb."},
+{q:"The Unity method called at fixed time intervals, appropriate for physics operations, is called _____.",ans:"FixedUpdate",diff:"medium",exp:"FixedUpdate() runs at fixed intervals and is the correct place to apply physics forces like AddForce()."},
+{q:"The Unity method called automatically once before the first frame update is called _____.",ans:"Start",diff:"medium",exp:"Start() runs once when the GameObject becomes active, before the first frame update."},
+{q:"The Unity function that applies a movement vector as a physical force to a Rigidbody is called _____.",ans:"AddForce",diff:"medium",exp:"AddForce() causes the object to accelerate rather than instantly move, affected by mass, drag, and friction."},
+{q:"In the Unity movement script, the _____ axis is set to 0.0f to prevent vertical movement.",ans:"Y",diff:"medium",exp:"Setting Y to 0.0f keeps the object on the flat XZ plane, preventing it from moving up or down."},
+{q:"The Unity namespace that imports the main programming library including MonoBehaviour and Rigidbody is called _____.",ans:"UnityEngine",diff:"medium",exp:"UnityEngine is required for core Unity classes like MonoBehaviour, Rigidbody, Vector3, and Input."},
+{q:"The creative strategy described as a lifelong process for building overall creative strength is _____.",ans:"reading",diff:"medium",exp:"Reading is described as the best strategy for stuffing your head full of concepts and associations that enable creativity."},
+{q:"The creative strategy described as an exercise in tightening up the web of associations in your mind is _____.",ans:"wondering",diff:"medium",exp:"Wondering helps connect previously unconnected ideas. The source uses figuring out why the sky is blue as an example."},
+{q:"A combat relationship where no single unit type always wins — similar to Paper-Scissors-Stone — is called an _____ relationship.",ans:"intransitive",diff:"medium",exp:"An intransitive relationship means A beats B, B beats C, but C can beat A — preventing a single dominant strategy."},
+{q:"The game described in the source as 'more of a toy than a game' by its own creator is _____.",ans:"SimCity",diff:"medium",exp:"SimCity's creator described it as more of a toy than a game because it has no firm goals."},
+{q:"The game cited as an example of an experience more like reading a slightly interactive novel than playing a game is _____ Gate.",ans:"Baldur's",diff:"medium",exp:"Baldur's Gate is described as having lots of story but little real gameplay, where player choices rarely change the outcome."},
+{q:"The hidden costs of a game choice — everything you had to build or do before you could access it — are called _____ costs.",ans:"shadow",diff:"hard",exp:"In Warrior Kings, hiring a mercenary requires building shops, townsmen, and a tavern first. All of that is the shadow cost."},
+{q:"Factors that offset a powerful game option — such as making it slow, weak, or expensive — are called _____ factors.",ans:"compensating",diff:"hard",exp:"Compensating factors ensure any game choice has both an upside and a downside, keeping gameplay balanced."},
+{q:"The term for the tendency to add unnecessary features to a game, which can damage the elegance of gameplay, is _____ plating.",ans:"gold",diff:"hard",exp:"Gold plating results from someone deciding features would be cool without considering whether they improve the game."},
+{q:"Choices that affect the course of the game over the medium or long term and impact future tactical options are called _____ choices.",ans:"strategic",diff:"hard",exp:"Strategic choices differ from tactical ones — they have knock-on effects on future options rather than applying only right now."},
+{q:"The three types of plot point identified by Aristotle are the reversal, the discovery, and the _____.",ans:"calamity",diff:"hard",exp:"Aristotle identified reversal, discovery, and calamity as the three kinds of plot point that pivot a story in a new direction."},
+{q:"The primary goal of entertainment, according to the source, is to make the audience _____.",ans:"care",diff:"hard",exp:"The source states the goal of entertainment is to make the audience care, and interactivity is the most powerful tool for achieving this."},
+{q:"An option that is never the best or worst but works in many situations is called the _____ option.",ans:"versatile",diff:"hard",exp:"The versatile or jack-of-all-trades option is moderately effective in many situations, making it valuable in unpredictable environments."},
+{q:"The balance level that establishes the value of each game choice is called _____ balance.",ans:"component",diff:"hard",exp:"Component balance ensures no choice is simply reducible to a superior value over others — or that other factors even it out."},
+{q:"The balance level that involves how choices interact with each other, not just their relative values, is called _____ balance.",ans:"attribute",diff:"hard",exp:"Attribute balance covers the way choices interact with each other, as opposed to component balance which covers their individual values."},
+{q:"A combat relationship where one unit is simply the best, then the second, then the third is called a _____ relationship.",ans:"transitive",diff:"hard",exp:"A transitive relationship leads to trivial gameplay because one unit is always the dominant choice, removing interesting decisions."},
+{q:"The game that infers which character the hero is attracted to based on how much time the player spends with them is _____ Runner.",ans:"Blade",diff:"hard",exp:"The Blade Runner game is cited as an example of second-guessing the player's preferences subtly through behavior tracking."},
+{q:"The game cited for using a context-sensitive right-click to interpret commands as 'attack' or 'move' depending on what is clicked is _____ of Empires.",ans:"Age",diff:"hard",exp:"Age of Empires used right-click context sensitivity so the command changes based on whether you click on an enemy or empty space."},
+{q:"The game cited as an example of effective 'hide in plain view' interface design using custom interfaces per species is _____.",ans:"StarCraft",diff:"hard",exp:"StarCraft made unit status boxes and command icons a design virtue by giving each species a custom interface that adds flavor."},
+{q:"The game cited as an example that helped you create a story rather than just telling you one is _____ Life.",ans:"Half",diff:"hard",exp:"Half-Life is described as the philosopher's stone of storytelling in games — it helped the player create the story."},
+{q:"The Unity namespace that imports generic collection types like List and Dictionary but is unused in the movement script is System.Collections._____.",ans:"Generic",diff:"hard",exp:"System.Collections.Generic imports List<T> and Dictionary<TKey, TValue> but the source notes it is unused in this script."},
+{q:"If a GameObject does not have a Rigidbody, the rb variable will be _____ and AddForce() will produce an error.",ans:"null",diff:"hard",exp:"The source states that if no Rigidbody is attached, rb will be null and the movement code will throw an error."},
+{q:"Input.GetAxis('Horizontal') returns _____ when the player presses the right key.",ans:"1",diff:"hard",exp:"The source states Input.GetAxis returns -1 for left, 0 for no input, and 1 for right."},
+{q:"The source says that to protect your idea, you should send it to yourself in an envelope and _____ open it.",ans:"not",diff:"hard",exp:"The source advises locking the unopened envelope away as a form of proof of the idea's origin date."},
+{q:"The source says creativity is a _____ business, not achieved by random daydreaming.",ans:"serious",diff:"hard",exp:"The source explicitly states that creativity is a serious business and that high levels of creativity are not attained by random daydreaming."},
+{q:"The source describes game design as creating a system that spawns _____ problems, not just specific ones.",ans:"generic",diff:"hard",exp:"The source distinguishes puzzles (specific problems) from gameplay (a system that spawns generic problems). Game design is about the latter."},
+{q:"According to the source, a well-designed game cannot be won without a _____.",ans:"strategy",diff:"hard",exp:"The source states that strategy manifests as a series of interesting choices, and a well-designed game cannot be won without one."},
+];
+
+let current=0,score=0,answered=false,wrong=[],hintUsed=false;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const order=shuffle([...Array(Qs.length).keys()]);
+
+function buildHintBoxes(ans,revealed){
+  return ans.split('').map((ch,i)=>{
+    if(ch===' ') return '<span class="hint-box space"></span>';
+    if(i===0||revealed) return `<span class="hint-box">${ch.toUpperCase()}</span>`;
+    return '<span class="hint-box blank">_</span>';
+  }).join('');
+}
+
+function render(){
+  const el=document.getElementById('quiz');
+  if(current>=Qs.length){showFinal(el);return;}
+  const idx=order[current];const q=Qs[idx];
+  const pct=current===0?0:Math.round((score/current)*100);
+  hintUsed=false;
+  el.innerHTML=`
+<div class="prog">Question ${current+1} of ${Qs.length} &nbsp;·&nbsp; Score: ${score}/${current}</div>
+<div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
+<div class="q-card">
+  <span class="diff diff-${q.diff}">${q.diff}</span>
+  <div class="q-text">${q.q}</div>
+  <div class="hint-row">
+    <span class="hint-label">Hint:</span>
+    <div class="hint-letters" id="hint-boxes">${buildHintBoxes(q.ans,false)}</div>
+    <span class="hint-label" style="margin-left:4px">(${q.ans.length} letters)</span>
+  </div>
+  <div class="input-row">
+    <input type="text" id="ans-input" placeholder="Type your answer..." autocomplete="off" onkeydown="if(event.key==='Enter')checkAns()">
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="checkAns()" id="submit-btn">Submit</button>
+    <button class="btn btn-hint" onclick="showHint()" id="hint-btn">Show more letters</button>
+  </div>
+  <div class="feedback" id="fb"></div>
+  <button class="btn" id="next-btn" onclick="next()" style="display:none;margin-top:0.75rem">${current===Qs.length-1?'See results →':'Next question →'}</button>
+</div>`;
+  document.getElementById('ans-input').focus();
+  answered=false;
+}
+
+function showHint(){
+  if(answered)return;
+  const idx=order[current];const q=Qs[idx];
+  hintUsed=true;
+  document.getElementById('hint-boxes').innerHTML=buildHintBoxes(q.ans,true);
+  document.getElementById('hint-btn').disabled=true;
+}
+
+function checkAns(){
+  if(answered)return;
+  const idx=order[current];const q=Qs[idx];
+  const input=document.getElementById('ans-input');
+  const val=input.value.trim().toLowerCase();
+  const correct=q.ans.toLowerCase();
+  answered=true;
+  input.disabled=true;
+  document.getElementById('submit-btn').disabled=true;
+  document.getElementById('hint-btn').disabled=true;
+  const fb=document.getElementById('fb');
+  const nb=document.getElementById('next-btn');
+  document.getElementById('hint-boxes').innerHTML=buildHintBoxes(q.ans,true);
+  if(val===correct){
+    fb.className='feedback show ok';
+    fb.innerHTML='<strong>Correct!</strong> '+q.exp;
+    if(!hintUsed) score++;
+    else{fb.innerHTML='<strong>Correct!</strong> (hint used — no point) '+q.exp;}
+  } else {
+    fb.className='feedback show bad';
+    fb.innerHTML='<strong>Incorrect.</strong> The answer is <strong>'+q.ans+'</strong>. '+q.exp;
+    wrong.push({q:q.q,a:q.ans});
+  }
+  nb.style.display='inline-block';
+}
+
+function next(){current++;render();}
+
+function showFinal(el){
+  const pct=Math.round((score/Qs.length)*100);
+  let msg=pct>=90?'Excellent work!':pct>=70?'Good job!':pct>=50?'Keep reviewing!':'More study needed.';
+  let reviewHTML='';
+  if(wrong.length>0){
+    reviewHTML=`<div class="review-title">Questions to review (${wrong.length})</div>`+
+    wrong.map(w=>`<div class="review-item"><div class="rq">${w.q}</div><div class="ra">Answer: ${w.a}</div></div>`).join('');
+  } else {
+    reviewHTML='<p style="color:var(--text-success);font-size:14px;margin-top:0.5rem">No wrong answers!</p>';
+  }
+  el.innerHTML=`<div class="final">
+    <h2>${msg}</h2>
+    <div class="big">${score}/${Qs.length}</div>
+    <p>${pct}% correct (hint usage forfeits points)</p>
+    ${reviewHTML}
+    <button class="btn" style="margin-top:1.5rem" onclick="restart()">Restart quiz</button>
+  </div>`;
+}
+
+function restart(){current=0;score=0;wrong=[];shuffle(order);render();}
+render();
+</script>

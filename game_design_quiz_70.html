@@ -1,0 +1,186 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+#quiz{padding:1rem 0;max-width:660px}
+.prog{font-size:13px;color:var(--text-secondary);margin-bottom:0.5rem}
+.score-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.5rem}
+.score-fill{height:4px;background:var(--border-accent);border-radius:2px;transition:width 0.4s}
+.q-card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+.q-text{font-size:15px;color:var(--text-primary);line-height:1.6;margin-bottom:1.25rem}
+.diff{display:inline-block;font-size:11px;padding:2px 8px;border-radius:var(--radius);margin-bottom:0.75rem;font-weight:500}
+.diff-easy{background:var(--bg-success);color:var(--text-success)}
+.diff-medium{background:var(--bg-warning);color:var(--text-warning)}
+.diff-hard{background:var(--bg-danger);color:var(--text-danger)}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{background:var(--surface-1);border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0.75rem 1rem;font-size:14px;color:var(--text-primary);cursor:pointer;text-align:left;transition:background 0.15s,border-color 0.15s;line-height:1.5}
+.choice:hover:not(:disabled){background:var(--surface-0);border-color:var(--border-accent)}
+.choice.correct{background:var(--bg-success);border-color:var(--border-success);color:var(--text-success)}
+.choice.wrong{background:var(--bg-danger);border-color:var(--border-danger);color:var(--text-danger)}
+.choice.reveal{background:var(--bg-success);border-color:var(--border-success);color:var(--text-success)}
+.choice:disabled{cursor:default}
+.feedback{margin-top:1rem;padding:0.75rem 1rem;border-radius:var(--radius);font-size:13px;line-height:1.6;display:none}
+.feedback.show{display:block}
+.feedback.ok{background:var(--bg-success);color:var(--text-success);border:0.5px solid var(--border-success)}
+.feedback.bad{background:var(--bg-danger);color:var(--text-danger);border:0.5px solid var(--border-danger)}
+.btn{background:transparent;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:0.5rem 1.25rem;font-size:14px;color:var(--text-primary);cursor:pointer;margin-top:1rem}
+.btn:hover{background:var(--surface-1)}
+.btn:disabled{opacity:0.4;cursor:default}
+#next-btn{display:none}
+.final{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:2rem;text-align:center}
+.final h2{font-size:22px;font-weight:500;color:var(--text-primary);margin-bottom:0.5rem}
+.final .big{font-size:42px;font-weight:500;color:var(--text-accent);margin:1rem 0}
+.final p{font-size:14px;color:var(--text-secondary);margin-bottom:1.5rem}
+.review-item{background:var(--surface-1);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.75rem 1rem;text-align:left;margin:0.5rem 0}
+.review-item .rq{font-size:13px;color:var(--text-secondary);margin-bottom:4px}
+.review-item .ra{font-size:13px;color:var(--text-success);font-weight:500}
+.review-title{font-size:14px;font-weight:500;color:var(--text-primary);margin:1rem 0 0.5rem;text-align:left}
+</style>
+<h2 class="sr-only">Game design concepts 70-item multiple choice quiz</h2>
+<div id="quiz"></div>
+<script>
+const Qs=[
+{q:"Which term refers to a dominant strategy in game design?",choices:["An option never worth using","An option so good it's never worth doing anything else","An option useful only in narrow circumstances","An option with equal upsides and downsides"],ans:1,diff:"easy",exp:"A dominant strategy is one that is so good it's never worth doing anything else, making all other options worthless."},
+{q:"Which term refers to an option that is never worth using under any circumstances?",choices:["Dominant strategy","Near-dominated option","Dominated strategy","Compensating factor"],ans:2,diff:"easy",exp:"A dominated strategy is an option that is never worth using under any circumstances — the opposite of a dominant strategy."},
+{q:"Which term describes the player's sense of actually being in the game's world?",choices:["Ambience","Interface","Immersion","Storytelling"],ans:2,diff:"easy",exp:"Immersion is the player's sense of actually being in the game's world, achieved through ambience, interface, and storytelling."},
+{q:"Which term refers to everything that contributes to the innate look and feel of a game?",choices:["Immersion","Ambience","Interface","Foreshadowing"],ans:1,diff:"easy",exp:"Ambience is everything that contributes to the innate look and feel of the game, broadly categorized as sound, vision, and touch."},
+{q:"Which term refers to a literary device that gives an advance hint of what is to come later in a story?",choices:["Plot point","Resistance","Foreshadowing","Personalization"],ans:2,diff:"easy",exp:"Foreshadowing is a literary device in which a writer gives an advance hint of what is to come later in the story."},
+{q:"Which type of game balance makes a multiplayer game fair so each player gets no advantage other than skill?",choices:["Gameplay/gameplay balance","Player/gameplay balance","Player/player balance","Component balance"],ans:2,diff:"easy",exp:"Player/player balance is the art of making a multiplayer game fair so that each player gets no other special advantage but their skill."},
+{q:"Which type of game balance involves ensuring the player's learning curve is matched by rewards?",choices:["Player/player balance","Player/gameplay balance","Gameplay/gameplay balance","Attribute balance"],ans:1,diff:"easy",exp:"Player/gameplay balance ensures the player's learning curve is matched by rewards that keep them playing."},
+{q:"Which type of game balance ensures features within the game are balanced against each other?",choices:["Player/player balance","Player/gameplay balance","Gameplay/gameplay balance","Component balance"],ans:2,diff:"easy",exp:"Gameplay/gameplay balance means that features within the game must be balanced against each other, such as a powerful sword costing more or having compensating drawbacks."},
+{q:"Which term describes what computers do best, and is called the heart and soul of entertainment software?",choices:["Gameplay","Storytelling","Immersion","Interactivity"],ans:3,diff:"easy",exp:"The source states that interactivity is what computers do best and that it is, much more than gameplay, the heart and soul of entertainment software."},
+{q:"According to the source, what is a game according to Sid Meier?",choices:["A series of interesting stories","A series of interesting choices","A series of challenging puzzles","A series of immersive experiences"],ans:1,diff:"easy",exp:"Sid Meier said 'A game is a series of interesting choices.' The source cites this when explaining what makes gameplay worthwhile."},
+{q:"Which term describes hidden costs — time, effort, attention, and alternative resources — needed to reach a game choice?",choices:["Supporting investments","Compensating factors","Shadow costs","Synergies"],ans:2,diff:"medium",exp:"Shadow costs are the real costs of a game choice in terms of everything you had to go through to get there, beyond just the immediate price."},
+{q:"Which term refers to secondary aims in a game that support but do not directly achieve the primary objective?",choices:["Strategic choices","Shadow costs","Supporting investments","Synergies"],ans:2,diff:"medium",exp:"Supporting investments indirectly work toward your goal. The source gives building farms to produce food to recruit soldiers as an example."},
+{q:"Which term describes interactions between different elements of a player's strategic options?",choices:["Compensating factors","Impermanence","Synergies","Versatility"],ans:2,diff:"medium",exp:"Synergies are the interactions between different elements of the player's strategic arsenal. The source says ideally all four forms of synergy should be in play at once."},
+{q:"Which term refers to a game option whose timing is critical and depends on the context?",choices:["Strategic choice","Dominant strategy","Interesting choice","Compensating factor"],ans:2,diff:"medium",exp:"The source lists options whose timing is critical and depends on context as one of the most interesting kinds of choices in terms of gameplay value."},
+{q:"Which concept refers to advantages or disadvantages that can be destroyed, stolen, or that have a limited time or number of uses?",choices:["Compensating factors","Shadow costs","Impermanence","Near dominance"],ans:2,diff:"medium",exp:"Impermanence refers to advantages or disadvantages that are temporary — they can be destroyed, stolen, have limited uses, or expire after a set time."},
+{q:"Which term describes an option useful only against one specific enemy type in a game?",choices:["Dominated strategy","Near-dominated option","Compensating factor","Impermanence"],ans:1,diff:"medium",exp:"A near-dominated option is only useful in very narrow circumstances. The source gives the example of a stun gun only effective against raptors."},
+{q:"Which term refers to a design principle where each player has functionally the same choices available?",choices:["Attribute balance","Component balance","Symmetry","Impermanence"],ans:2,diff:"medium",exp:"Symmetry in design means that the choices available to all players are functionally the same, ensuring fairness."},
+{q:"Which storytelling technique creates a personal reason for the player to care about the game's events?",choices:["Foreshadowing","Plot points","Resistance","Personalization"],ans:3,diff:"medium",exp:"Personalization adds a personal reason so the audience cares. The source contrasts saving the world abstractly versus finding a lost niece."},
+{q:"Which term refers to a sudden event that pivots the story in a new and surprising direction?",choices:["Foreshadowing","Resistance","Plot point","Personalization"],ans:2,diff:"medium",exp:"A plot point pivots the story around in a new and surprising direction. The source cites Gandalf's unexpected death in Lord of the Rings as an example."},
+{q:"Which term describes the internal feeling a player has of pushing back against a story, thinking 'it isn't true'?",choices:["Foreshadowing","Personalization","Plot point","Resistance"],ans:3,diff:"medium",exp:"Resistance is the back-of-mind feeling that 'it isn't true.' The player must be pulled along to overcome it."},
+{q:"Which concept describes factors like mass, drag, and friction affecting a Rigidbody in Unity?",choices:["AddForce()","GetComponent()","FixedUpdate()","Physics settings"],ans:3,diff:"medium",exp:"The source states that because AddForce() is used, the object's movement is affected by its mass, drag, friction, and other physics settings."},
+{q:"Which Unity method is called automatically once before the first frame update when a GameObject becomes active?",choices:["FixedUpdate()","Update()","AddForce()","GetComponent()"],ans:0,diff:"medium",exp:"Start() is called automatically by Unity once before the first frame update when the GameObject becomes active."},
+{q:"Which Unity method is called at fixed time intervals and is appropriate for physics operations?",choices:["Start()","Update()","FixedUpdate()","GetComponent()"],ans:2,diff:"medium",exp:"FixedUpdate() is called at fixed time intervals and is appropriate for physics-related operations such as applying force to a Rigidbody."},
+{q:"What value does Input.GetAxis('Horizontal') return when the player presses the left key?",choices:["0","1","-1","0.5"],ans:2,diff:"medium",exp:"The source states that Input.GetAxis('Horizontal') returns -1 for left, 0 for no input, and 1 for right."},
+{q:"Which Vector3 axis is intentionally set to 0.0f in the Unity movement script to prevent vertical movement?",choices:["X-axis","Z-axis","Y-axis","W-axis"],ans:2,diff:"medium",exp:"The Y-axis is set to 0.0f so the object moves only on the flat XZ plane and does not move upward or downward."},
+{q:"Which Unity function finds and returns the component of a specified type attached to the same GameObject?",choices:["AddForce()","FixedUpdate()","GetComponent()","Start()"],ans:2,diff:"medium",exp:"GetComponent<Rigidbody>() finds the Rigidbody component attached to the same GameObject and stores it in the rb variable."},
+{q:"Which Unity function applies a movement vector as a physical force to a Rigidbody?",choices:["GetComponent()","FixedUpdate()","Start()","AddForce()"],ans:3,diff:"medium",exp:"AddForce() applies the movement vector as a physical force to the Rigidbody, causing the object to accelerate rather than instantly move."},
+{q:"What happens in Unity if the GameObject does not have a Rigidbody when GetComponent<Rigidbody>() is called?",choices:["It creates a new Rigidbody automatically","rb will be null and AddForce() will produce an error","The script skips the physics update","Unity assigns a default Rigidbody"],ans:1,diff:"medium",exp:"The source states that if the GameObject does not have a Rigidbody, rb will be null, and the movement code will produce an error when it tries to use rb.AddForce()."},
+{q:"Which namespace in the Unity script imports Unity's main programming library, required for MonoBehaviour and Rigidbody?",choices:["System.Collections","System.Collections.Generic","UnityEngine","System.Physics"],ans:2,diff:"medium",exp:"UnityEngine is the namespace that imports Unity's main programming library, required for classes such as MonoBehaviour, Rigidbody, Vector3, and Input."},
+{q:"Which creative strategy involves stuffing your head full of concepts and all their associations to build overall creative strength?",choices:["Brainstorming","Wondering","Reading","Lateral thinking"],ans:2,diff:"medium",exp:"The source states the best strategy is to stuff your head full of concepts and all their associations, achieved through reading — described as a lifelong process."},
+{q:"Which creative strategy is described as an exercise in tightening up the web of associations in your mind?",choices:["Reading","Brainstorming","Wondering","Playing games"],ans:2,diff:"medium",exp:"Wondering is important because it is an exercise in tightening up the web of associations in your mind. When you figure something out, two previously unconnected ideas become connected."},
+{q:"What does the source say is the difference between an original idea and a licensed product?",choices:["An original idea has never been done before","A licensed idea is already proven practically or commercially","A licensed product is always more profitable","An original idea requires a larger team"],ans:1,diff:"medium",exp:"The source states that an idea is only theory until proven practically or commercially. If it's already proven, that is the difference between an original idea and a licensed product."},
+{q:"According to the source, what should you do to protect your game idea before sharing it?",choices:["File a patent","Register it online","Send it to yourself in a sealed envelope and do not open it","Watermark every page"],ans:2,diff:"medium",exp:"The source advises putting the typed idea in an envelope, sending it to yourself, and not opening it when received — locking it away as proof of the idea's origin."},
+{q:"Which term describes a combat relationship where warriors beat barbarians, barbarians beat archers, but archers can beat warriors?",choices:["Transitive relationship","Absolute superiority","Marginal superiority","Intransitive relationship"],ans:3,diff:"medium",exp:"An intransitive relationship is one where no single unit always wins — mirroring Paper-Scissors-Stone logic. The source contrasts it with a transitive relationship where one unit is simply best."},
+{q:"Which game is described in the source as 'more of a toy than a game' by its own creator?",choices:["Grim Fandango","The Sims","SimCity","Age of Empires"],ans:2,diff:"medium",exp:"SimCity is described in the source as more of a toy than a game by its creator, because it has very compelling interaction but mostly no goals."},
+{q:"Which game is cited as an example where the experience is much more like reading a slightly interactive novel than playing a game?",choices:["Half-Life","Age of Empires","Grim Fandango","Baldur's Gate"],ans:3,diff:"medium",exp:"Baldur's Gate is described in the source as having a lot of story but little gameplay, making the experience more like reading a slightly interactive novel."},
+{q:"Which game is cited as an example of effective transparent interface design where each species has its own custom interface?",choices:["Age of Empires","Half-Life","StarCraft","Baldur's Gate"],ans:2,diff:"medium",exp:"StarCraft is cited as an example where unit status boxes and command icons are unavoidable, so designers made each species have its own custom interface that adds flavor — a 'hide in plain view' approach."},
+{q:"Which game used right-click context sensitivity so that clicking on an enemy means 'attack' and clicking on empty space means 'move'?",choices:["StarCraft","Baldur's Gate","Half-Life","Age of Empires"],ans:3,diff:"medium",exp:"Age of Empires used context-sensitive right-clicking so the command is interpreted based on what you click on — attack for enemies, move for empty locations."},
+{q:"Which game is cited as an example that 'didn't just tell you a story — it helped you create a story'?",choices:["StarCraft","Grim Fandango","Age of Empires","Half-Life"],ans:3,diff:"medium",exp:"Half-Life is cited in the source as an example of storytelling that helps you create a story, described as the philosopher's stone that turns dross into gold."},
+{q:"Which namespace in the Unity script imports generic collection types such as List and Dictionary but is unused in the script?",choices:["UnityEngine","System.Collections","System.Collections.Generic","System.Physics"],ans:2,diff:"hard",exp:"System.Collections.Generic imports generic collection types such as List<T> and Dictionary<TKey, TValue>, but the source notes it is unused in this script."},
+{q:"Which namespace in the Unity script imports classes for working with collections such as lists or arrays but is currently unused?",choices:["UnityEngine","System.Collections.Generic","System.Physics","System.Collections"],ans:3,diff:"hard",exp:"System.Collections imports classes for working with collections such as lists or arrays that can be processed over time. The source notes it does not currently use anything from this namespace."},
+{q:"What inaccuracy does the source note about the comment on line 14 of the Unity script?",choices:["It says Start() instead of FixedUpdate()","It says Update() instead of FixedUpdate()","It says FixedUpdate() instead of Start()","It says Update() instead of Start()"],ans:1,diff:"hard",exp:"The source notes the comment says 'Update is called once per frame' but the method actually used is FixedUpdate(), which is normally used for physics calculations."},
+{q:"Which term describes the type of balance that involves not the relative values of choices but the way those choices interact with each other?",choices:["Component balance","Player/gameplay balance","Symmetry","Attribute balance"],ans:3,diff:"hard",exp:"Attribute balance involves not the relative values of different choices but the way the choices interact with each other, as opposed to component balance which establishes each choice's value."},
+{q:"Which principle states that it is always better to reward the player for doing something right than to punish them for doing something wrong?",choices:["Let the machine do the work","Make a game you play with not against","Reward the player","Symmetry in game design"],ans:2,diff:"hard",exp:"The source explicitly states this as a rule of player/gameplay balance: it is always better to reward the player for doing something right than to punish them for doing something wrong."},
+{q:"Which approach to game design is described as 'lazy design' where the player must succeed by trial and error rather than skill and judgment?",choices:["Reward the player","Make a game you play against","Gold plating","Dominant strategy design"],ans:1,diff:"hard",exp:"The source labels trial-and-error design as 'lazy design,' stating the player should succeed by skill and judgment, not trial and error. The crossbowman example illustrates this failure."},
+{q:"Which concept describes the principle that complexity in a game should arise from simple rules, similar to how termites build complex nests from basic behaviors?",choices:["Dominant strategy","Synergies","Emergent complexity","Gameplay depth"],ans:2,diff:"hard",exp:"The source states the game must display complexity arising from simple rules, using termites building elaborate nests without a blueprint as the analogy — each termite only follows a few simple rules."},
+{q:"Which three Aristotelian plot point types are identified in the source?",choices:["Discovery, reversal, resolution","Reversal, discovery, calamity","Foreshadowing, reversal, resolution","Calamity, personalization, resistance"],ans:1,diff:"hard",exp:"Aristotle identified three kinds of plot point: the reversal, the discovery, and the calamity. These are cited in the source's discussion of storytelling techniques."},
+{q:"According to the source, what is the primary goal of entertainment in the context of interactivity?",choices:["To provide realistic simulation","To make the audience care","To offer the most choices possible","To deliver the most complex story"],ans:1,diff:"hard",exp:"The source states that the goal of entertainment is to make the audience care, and that interactivity is a new and powerful technique in the writer's repertoire for achieving that goal."},
+{q:"Which game design problem occurs when one option is much better than alternatives in most circumstances, causing other options to be rarely used?",choices:["Dominated strategy","Near dominance","Gold plating","Transitive relationship"],ans:1,diff:"hard",exp:"Near dominance describes options that players will use most of the time, and near-dominated options that are only useful in very narrow circumstances. Unlike full dominance, it isn't disastrous but shows which options will be used most."},
+{q:"Which type of interactivity involves following a character's story by switching between narrative strands as an invisible observer?",choices:["Directly controlling a character","Influencing a character at one remove","Deciding who to follow between narrative strands","Affecting the game world itself"],ans:2,diff:"hard",exp:"The source lists 'deciding who to follow, rather than what happens — an invisible observer flitting between narrative strands' as one kind of interactivity."},
+{q:"Which type of interactivity involves giving a character clues or weapons to influence their actions indirectly, like Zeus aiding a favored hero?",choices:["Directly controlling a character","Influencing a character at one remove","Influencing a character at two removes","Deciding who to follow"],ans:1,diff:"hard",exp:"Influencing a character at one remove means giving them clues or weapons — the source uses the example of Zeus aiding a favored hero."},
+{q:"Which type of interactivity involves pointing something out for a character to look at, like a Muse providing inspiration?",choices:["Influencing a character at one remove","Directly controlling a character","Influencing a character at two removes","Affecting the game world itself"],ans:2,diff:"hard",exp:"Influencing a character at two removes means leading them somewhere or pointing something out — the source uses a Muse providing inspiration as the example."},
+{q:"What does the source say about originality in game design?",choices:["Originality can only be found in gameplay mechanics","Originality can present itself in gameplay, story, setting, characters, interface, or technology","Originality is only valuable if it spawns a new genre","Originality requires using licensed properties"],ans:1,diff:"hard",exp:"The source states that originality can present itself in many aspects: gameplay, story, setting, characters, interface, or technology. Freshness in most of these can make a great game; freshness in all could spawn a new genre."},
+{q:"Which of the following is NOT listed in the source as a goal that all existing games aim to achieve?",choices:["Collect something","Gain territory","Master a skill","Eliminate other players"],ans:2,diff:"hard",exp:"The source lists collecting, gaining territory, getting somewhere first, removing obstacles, discovery, and eliminating players as game goals. Mastering a skill is not listed."},
+{q:"Which of the following does the source say is NOT sufficient on its own to constitute gameplay?",choices:["Interesting choices","Cool features","Physical interaction","Storytelling"],ans:2,diff:"hard",exp:"The source explicitly lists cool features, fancy graphics, puzzles, and setting/story as things that are not sufficient on their own for gameplay. Physical interaction is not in the list."},
+{q:"According to the source, what should be listed in the first meeting document to help determine the genre of the game?",choices:["The graphical theme","The types of challenges the player will face","The target platform","The team composition"],ans:1,diff:"hard",exp:"The source states that listing the types of challenges the player will be doing will help determine the genre of the game. This is part of the Define the Product checklist."},
+{q:"Which of the following best describes a 'jack-of-all-trades' option in game design according to the source?",choices:["An option that is always the best in every situation","An option that is never the best or worst but is the most versatile","An option that compensates for weaknesses with speed","An option that only works in very specific contexts"],ans:1,diff:"hard",exp:"The source describes versatility as a unique kind of choice — never the best or worst, but the most versatile. It calls this the jack-of-all-trades option."},
+{q:"According to the source, which of the following correctly describes how the creative combination of ideas works?",choices:["Two ideas are simply added together to form a new one","Ideas combine in a random way to produce creativity","New ideas emerge by comparing the outer connections of two analogous ideas","Creativity comes from choosing the most popular existing ideas"],ans:2,diff:"hard",exp:"The source explains that new ideas are created by comparing the outer connections of two analogous ideas, allowing logical connections to be made by noting similarities."},
+{q:"Which of the following is described in the source as a correct reason why near-dominance is useful information for a designer?",choices:["It tells you which options to remove from the game","It shows which options will get used most and therefore deserve the best graphics","It identifies options that should be handled by the AI","It proves the game is properly balanced"],ans:1,diff:"hard",exp:"The source states that near dominance shows which options will get used most, and logically those are the ones on which you'll want to lavish the best graphics."},
+{q:"Which of the following is NOT described in the source as a way to make an aerial unit balanced despite its terrain-crossing ability?",choices:["Make it slow","Give it a low surveillance range","Make it expensive to buy","Make it require a special resource to build"],ans:3,diff:"hard",exp:"The source lists making it slow, weak, giving it a low surveillance range, and making it expensive as compensating factors. Requiring a special resource is not mentioned."},
+{q:"Which of the following best describes why 'making it expensive to buy' is considered a weaker compensating factor for a powerful unit?",choices:["It makes the unit too hard to obtain","It doesn't oblige the player to use the unit in an interesting way once purchased","It removes the unit from early-game play entirely","It makes the game unfair to less experienced players"],ans:1,diff:"hard",exp:"The source explains that making a unit expensive doesn't oblige the player to use it in an interesting way — they either buy it or not, and once bought, the choice is committed. It won't lead to clever tactics."},
+{q:"According to the source, which of the following is the correct reason why asymmetry in level design should be confined to minor factors?",choices:["Asymmetry always makes games more interesting","Major asymmetries can individually sway the outcome of the game","Minor asymmetries are easier to design","Asymmetry is needed for aesthetics only"],ans:1,diff:"hard",exp:"The source states asymmetries should be confined to minor factors that cannot individually sway the outcome of the game. No game should be decided by factors outside a player's control."},
+{q:"Which of the following correctly describes why a transitive combat relationship leads to trivial gameplay?",choices:["It gives players too many choices to manage","One unit is always best so there is no interesting decision to make","It makes the game too unpredictable","It removes the need for strategic planning"],ans:1,diff:"hard",exp:"A transitive relationship means one unit is simply best, then the second, then the third. This means there is one obvious best choice, making the decision trivial rather than interesting."},
+{q:"According to the source, what is the problem with designing a game where a single warrior can beat any number of barbarians?",choices:["It makes the game too long","It makes the warrior unit too expensive to deploy","It leads to absolute superiority, forcing all armies to consist of equal mixes of units","It leads to marginal superiority making unit interaction unnecessary"],ans:2,diff:"hard",exp:"The source describes this as absolute superiority. The result is that armies must consist of an equal mix of all unit types, or they lose — removing interesting strategic choice."},
+{q:"Which of the following describes what happens to gameplay when the warrior is only marginally better than the barbarian?",choices:["Players will always choose the warrior","Unit interaction becomes virtually unnecessary","The game becomes too unpredictable","Players are forced to use dominant strategies"],ans:1,diff:"hard",exp:"When superiority is marginal, a player loses very little by fielding the wrong unit, so unit interaction becomes virtually unnecessary. Neither extreme — absolute nor marginal — leads to interesting gameplay."},
+{q:"Which of the following best explains why 'using your game as a vehicle to tell a story' is criticized in the source?",choices:["Stories are better told through cutscenes","It is a symptom of Frustrated Author Syndrome and a bad motive for wanting to be a game designer","Stories make gameplay too linear","It prevents the use of foreshadowing and plot points"],ans:1,diff:"hard",exp:"The source explicitly calls this Frustrated Author Syndrome and says it is a very bad motive for wanting to be a game designer, because computers are better suited for interactivity than storytelling."},
+{q:"Which of the following does the source say about the relationship between gameplay and strategy?",choices:["All well-designed games are strategy games by genre","Strategy manifests itself as a series of interesting choices in all well-designed games","Strategy is only relevant in wargames and RPGs","Good gameplay can be achieved without a strategy"],ans:1,diff:"hard",exp:"The source states that a well-designed game cannot be won without a strategy, and that strategy manifests itself as a series of interesting choices — regardless of genre."},
+{q:"What does the source say about an option that is always worth taking in a game?",choices:["It should be given to the player immediately","It should be handled by the AI automatically","It should be removed from the game","It represents a dominant strategy and should be rebalanced"],ans:1,diff:"hard",exp:"The source states that options always worth taking should be handled by the AI. It gives the example of auto-targeting the nearest enemy in third-person action games."},
+{q:"What is the source's view on a non-interactive computer game competing against other entertainment activities?",choices:["It would still be fun because of visuals","It would win if the story is good enough","It would not win out against other fun activities like TV, books, or frisbee","It depends on the quality of the gameplay"],ans:2,diff:"hard",exp:"The source states that if entertainment software were not interactive, players would wonder if their time wouldn't be better spent reading, watching TV, or throwing a frisbee. A non-interactive computer game wouldn't win out against other fun activities."},
+{q:"According to the source, which of the following best describes why puzzles alone do not constitute gameplay?",choices:["Puzzles are too easy to solve","Puzzles are specific problems, while game design is about creating a system that spawns generic problems","Puzzles distract from the story too much","Puzzles can only exist in pure puzzle games"],ans:1,diff:"hard",exp:"The source states that puzzles are specific problems, whereas game design is about creating a system that will spawn generic problems. Puzzles are therefore not gameplay in themselves."},
+{q:"What does the source say a game with lasting appeal must be able to do?",choices:["Always offer new content","Remain interesting even when players know the tricks","Provide increasingly difficult challenges","Change its rules over time"],ans:1,diff:"hard",exp:"The source states that a game with lasting appeal must remain interesting even when players know the tricks, in the context of discussing near-dominance and strategic options."},
+];
+
+let current=0,score=0,answered=false,wrong=[];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const order=shuffle([...Array(Qs.length).keys()]);
+
+function render(){
+  const el=document.getElementById('quiz');
+  if(current>=Qs.length){showFinal(el);return;}
+  const idx=order[current];const q=Qs[idx];
+  const pct=current===0?0:Math.round((score/current)*100);
+  el.innerHTML=`
+<div class="prog">Question ${current+1} of ${Qs.length} &nbsp;·&nbsp; Score: ${score}/${current}</div>
+<div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
+<div class="q-card">
+  <span class="diff diff-${q.diff}">${q.diff}</span>
+  <div class="q-text">${q.q}</div>
+  <div class="choices">
+    ${q.choices.map((c,i)=>`<button class="choice" onclick="pick(${i})">${String.fromCharCode(65+i)}. ${c}</button>`).join('')}
+  </div>
+  <div class="feedback" id="fb"></div>
+  <button class="btn" id="next-btn" onclick="next()" disabled style="display:none">${current===Qs.length-1?'See results →':'Next question →'}</button>
+</div>`;
+  answered=false;
+}
+
+function pick(i){
+  if(answered)return;
+  answered=true;
+  const idx=order[current];const q=Qs[idx];
+  const btns=document.querySelectorAll('.choice');
+  btns.forEach(b=>b.disabled=true);
+  const fb=document.getElementById('fb');
+  const nb=document.getElementById('next-btn');
+  if(i===q.ans){
+    btns[i].classList.add('correct');
+    fb.className='feedback show ok';
+    fb.innerHTML='<strong>Correct!</strong> '+q.exp;
+    score++;
+  } else {
+    btns[i].classList.add('wrong');
+    btns[q.ans].classList.add('reveal');
+    fb.className='feedback show bad';
+    fb.innerHTML='<strong>Incorrect.</strong> The correct answer is <strong>'+String.fromCharCode(65+q.ans)+'. '+q.choices[q.ans]+'</strong>. '+q.exp;
+    wrong.push({q:q.q,a:q.choices[q.ans]});
+  }
+  nb.disabled=false;
+  nb.style.display='inline-block';
+}
+
+function next(){current++;render();}
+
+function showFinal(el){
+  const pct=Math.round((score/Qs.length)*100);
+  let msg=pct>=90?'Excellent work!':pct>=70?'Good job!':pct>=50?'Keep reviewing!':'More study needed.';
+  let reviewHTML='';
+  if(wrong.length>0){
+    reviewHTML=`<div class="review-title">Questions to review (${wrong.length})</div>`+
+    wrong.map(w=>`<div class="review-item"><div class="rq">${w.q}</div><div class="ra">✓ ${w.a}</div></div>`).join('');
+  } else {
+    reviewHTML='<p style="color:var(--text-success);font-size:14px;margin-top:0.5rem">No wrong answers — perfect run!</p>';
+  }
+  el.innerHTML=`<div class="final">
+    <h2>${msg}</h2>
+    <div class="big">${score}/${Qs.length}</div>
+    <p>${pct}% correct across all topics</p>
+    ${reviewHTML}
+    <button class="btn" style="margin-top:1.5rem" onclick="restart()">Restart quiz</button>
+  </div>`;
+}
+
+function restart(){current=0;score=0;wrong=[];shuffle(order);render();}
+render();
+</script>

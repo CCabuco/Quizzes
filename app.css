@@ -167,7 +167,7 @@ h1 {
 
 .quiz-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
 }
@@ -259,7 +259,7 @@ h1 {
   left: 12px;
   z-index: 25;
   display: none;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -279,6 +279,92 @@ h1 {
   font-size: 0.78rem;
   font-weight: 800;
   text-align: center;
+}
+
+.quiz-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mode-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(64px, 1fr));
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-0);
+  padding: 4px;
+}
+
+.mode-toggle button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.mode-toggle button.active {
+  background: var(--text-primary);
+  color: #ffffff;
+}
+
+.question-jump {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 44px;
+  gap: 7px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding: 4px 0 12px;
+  margin-bottom: 4px;
+}
+
+.question-jump button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-0);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.question-jump button.active {
+  border-color: var(--border-accent);
+  background: var(--text-primary);
+  color: #ffffff;
+}
+
+.question-jump button.done:not(.active) {
+  border-color: var(--border-success);
+  background: var(--bg-success);
+  color: var(--text-success);
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.nav-btn {
+  min-height: 44px;
+  width: 100%;
 }
 
 .bottom-nav a:hover {
@@ -303,6 +389,14 @@ h1 {
 
   .quiz-grid {
     grid-template-columns: 1fr;
+  }
+
+  .quiz-tools {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-toggle {
+    width: 100%;
   }
 
   .quiz-card {
@@ -331,5 +425,11 @@ h1 {
   .input-row {
     flex-direction: column;
     align-items: stretch !important;
+  }
+
+  .bottom-nav {
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: max(12px, env(safe-area-inset-left));
   }
 }

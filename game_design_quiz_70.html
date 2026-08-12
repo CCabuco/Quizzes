@@ -17,8 +17,7 @@
         <nav class="nav-links" aria-label="Main navigation">
           <a href="index.html">Home</a>
           <a href="All%20Modules%20Game.html">All Modules</a>
-          <a href="game_design_quiz_70.html">70 Questions</a>
-          <a href="game_design_fitb_quiz.html">Fill Blanks</a>
+          <a href="game_design_quiz_70.html">Game Design</a>
         </nav>
       </div>
     </header>
@@ -137,86 +136,78 @@ const Qs=[
 {q:"What does the source say a game with lasting appeal must be able to do?",choices:["Always offer new content","Remain interesting even when players know the tricks","Provide increasingly difficult challenges","Change its rules over time"],ans:1,diff:"hard",exp:"The source states that a game with lasting appeal must remain interesting even when players know the tricks, in the context of discussing near-dominance and strategic options."},
 ];
 
-let current=0,score=0,answered=false,wrong=[];
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-const order=shuffle([...Array(Qs.length).keys()]);
-
+﻿function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+let current=0;
+let mode='mcq';
+const answers={mcq:{},fitb:{}};
+const order=[...Array(Qs.length).keys()];
+function esc(v){return String(v).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));}
+function normalize(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,' ');}
+function scoreFor(activeMode){return Object.values(answers[activeMode]).filter(item=>item && item.correct).length;}
+function answeredCount(activeMode){return Object.keys(answers[activeMode]).length;}
+function getQuestion(){return Qs[order[current]];}
+function correctText(q){return q.choices[q.ans];}
 function render(){
   const el=document.getElementById('quiz');
-  if(current>=Qs.length){showFinal(el);return;}
-  const idx=order[current];const q=Qs[idx];
-  const pct=current===0?0:Math.round((score/current)*100);
+  const q=getQuestion();
+  const score=scoreFor(mode);
+  const attempted=answeredCount(mode);
+  const pct=Math.round(((current+1)/Qs.length)*100);
+  const modeLabel=mode==='mcq'?'Multiple choice':'Fill blanks';
   el.innerHTML=`
-<div class="prog">Question ${current+1} of ${Qs.length} &nbsp;·&nbsp; Score: ${score}/${current}</div>
-<div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
-<div class="q-card">
-  <span class="diff diff-${q.diff}">${q.diff}</span>
-  <div class="q-text">${q.q}</div>
-  <div class="choices">
-    ${q.choices.map((c,i)=>`<button class="choice" onclick="pick(${i})">${String.fromCharCode(65+i)}. ${c}</button>`).join('')}
-  </div>
-  <div class="feedback" id="fb"></div>
-  <button class="btn" id="next-btn" onclick="next()" disabled style="display:none">${current===Qs.length-1?'See results →':'Next question →'}</button>
-</div>`;
-  answered=false;
+    <div class="quiz-tools">
+      <div>
+        <div class="prog">Question ${current+1} of ${Qs.length} · ${modeLabel} · Score ${score}/${attempted}</div>
+        <div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="mode-toggle" role="group" aria-label="Quiz mode">
+        <button class="${mode==='mcq'?'active':''}" onclick="setMode('mcq')">MCQ</button>
+        <button class="${mode==='fitb'?'active':''}" onclick="setMode('fitb')">FITB</button>
+      </div>
+    </div>
+    <div class="question-jump" aria-label="Question picker">${Qs.map((_,i)=>`<button class="${i===current?'active':''} ${Object.prototype.hasOwnProperty.call(answers[mode],i)?'done':''}" onclick="goTo(${i})">${i+1}</button>`).join('')}</div>
+    <div class="q-card">
+      <span class="diff diff-${q.diff}">${q.diff}</span>
+      <div class="q-text">${esc(q.q)}</div>
+      ${mode==='mcq'?renderMcq(q):renderFitb(q)}
+      <div class="nav-row">
+        <button class="btn nav-btn" onclick="prevQuestion()" ${current===0?'disabled':''}>← Previous</button>
+        <button class="btn nav-btn" onclick="nextQuestion()" ${current===Qs.length-1?'disabled':''}>Next →</button>
+      </div>
+    </div>`;
+  document.querySelector('.question-jump .active')?.scrollIntoView({inline:'center',block:'nearest'});
 }
-
-function pick(i){
-  if(answered)return;
-  answered=true;
-  const idx=order[current];const q=Qs[idx];
-  const btns=document.querySelectorAll('.choice');
-  btns.forEach(b=>b.disabled=true);
-  const fb=document.getElementById('fb');
-  const nb=document.getElementById('next-btn');
-  if(i===q.ans){
-    btns[i].classList.add('correct');
-    fb.className='feedback show ok';
-    fb.innerHTML='<strong>Correct!</strong> '+q.exp;
-    score++;
-  } else {
-    btns[i].classList.add('wrong');
-    btns[q.ans].classList.add('reveal');
-    fb.className='feedback show bad';
-    fb.innerHTML='<strong>Incorrect.</strong> The correct answer is <strong>'+String.fromCharCode(65+q.ans)+'. '+q.choices[q.ans]+'</strong>. '+q.exp;
-    wrong.push({q:q.q,a:q.choices[q.ans]});
-  }
-  nb.disabled=false;
-  nb.style.display='inline-block';
+function renderMcq(q){
+  const saved=answers.mcq[current];
+  const answered=Object.prototype.hasOwnProperty.call(answers.mcq,current);
+  return `<div class="choices">${q.choices.map((c,i)=>{const correct=i===q.ans;const picked=saved&&saved.index===i;const cls=answered?(correct?' correct':picked?' wrong':''):'';return `<button class="choice${cls}" onclick="pick(${i})" ${answered?'disabled':''}>${String.fromCharCode(65+i)}. ${esc(c)}</button>`;}).join('')}</div><div class="feedback ${answered?'show '+(saved.correct?'ok':'bad'):''}" id="fb">${answered?(saved.correct?'<strong>Correct!</strong> '+esc(q.exp):'<strong>Incorrect.</strong> Answer: <strong>'+esc(correctText(q))+'</strong>. '+esc(q.exp)):''}</div>`;
 }
-
-function next(){current++;render();}
-
-function showFinal(el){
-  const pct=Math.round((score/Qs.length)*100);
-  let msg=pct>=90?'Excellent work!':pct>=70?'Good job!':pct>=50?'Keep reviewing!':'More study needed.';
-  let reviewHTML='';
-  if(wrong.length>0){
-    reviewHTML=`<div class="review-title">Questions to review (${wrong.length})</div>`+
-    wrong.map(w=>`<div class="review-item"><div class="rq">${w.q}</div><div class="ra">✓ ${w.a}</div></div>`).join('');
-  } else {
-    reviewHTML='<p style="color:var(--text-success);font-size:14px;margin-top:0.5rem">No wrong answers — perfect run!</p>';
-  }
-  el.innerHTML=`<div class="final">
-    <h2>${msg}</h2>
-    <div class="big">${score}/${Qs.length}</div>
-    <p>${pct}% correct across all topics</p>
-    ${reviewHTML}
-    <button class="btn" style="margin-top:1.5rem" onclick="restart()">Restart quiz</button>
-  </div>`;
+function renderFitb(q){
+  const saved=answers.fitb[current];
+  const answered=Object.prototype.hasOwnProperty.call(answers.fitb,current);
+  return `<div class="input-row"><input id="ans-input" type="text" placeholder="Type the exact answer..." value="${saved?esc(saved.value):''}" ${answered?'disabled':''} onkeydown="if(event.key==='Enter')checkFitb()"></div><div class="btn-row"><button class="btn" onclick="checkFitb()" ${answered?'disabled':''}>Submit</button></div><div class="feedback ${answered?'show '+(saved.correct?'ok':'bad'):''}" id="fb">${answered?(saved.correct?'<strong>Correct!</strong> '+esc(q.exp):'<strong>Incorrect.</strong> Answer: <strong>'+esc(correctText(q))+'</strong>. '+esc(q.exp)):''}</div>`;
 }
-
-function restart(){current=0;score=0;wrong=[];shuffle(order);render();}
+function pick(i){const q=getQuestion();answers.mcq[current]={index:i,correct:i===q.ans};render();}
+function checkFitb(){const q=getQuestion();const value=document.getElementById('ans-input').value;answers.fitb[current]={value,correct:normalize(value)===normalize(correctText(q))};render();}
+function setMode(nextMode){mode=nextMode;render();}
+function goTo(i){current=i;render();}
+function prevQuestion(){if(current>0){current--;render();}}
+function nextQuestion(){if(current<Qs.length-1){current++;render();}}
 render();
+
 </script>
 
     </main>
     <nav class="bottom-nav" aria-label="Mobile navigation">
       <a href="index.html">Home</a>
       <a href="All%20Modules%20Game.html">All</a>
-      <a href="game_design_quiz_70.html">MCQ</a>
-      <a href="game_design_fitb_quiz.html">FITB</a>
+      <a href="game_design_quiz_70.html">Design</a>
     </nav>
   </div>
 </body>
 </html>
+
+
+
+
+
